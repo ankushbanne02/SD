@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Encryption</title>
+</head>
+<body>
+    <h2>RSA Encryption and Decryption</h2>
+    <label for="message">Enter Message:</label>
+    <input type="text" id="message" placeholder="Type your message">
+    <button onclick="encryptMessage()">Encrypt</button>
+    <p id="encryptedMessage"></p>
+    
+    <label for="manualEncrypted">Enter Encrypted Message:</label>
+    <input type="text" id="manualEncrypted" placeholder="Enter encrypted message">
+    <button onclick="decryptMessage()">Decrypt</button>
+    <p id="decryptedMessage"></p>
+
+    <script>
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        function modInverse(e, phi) {
+            for (let d = 1; d < phi; d++) {
+                if ((e * d) % phi === 1) {
+                    return d;
+                }
+            }
+            return -1;
+        }
+
+        function generateKeys() {
+            let p = 61, q = 53;
+            let n = p * q;
+            let phi = (p - 1) * (q - 1);
+            let e = 17;
+            while (gcd(e, phi) !== 1) {
+                e++;
+            }
+            let d = modInverse(e, phi);
+            return { publicKey: { e, n }, privateKey: { d, n } };
+        }
+
+        function modExp(base, exp, mod) {
+            let result = 1;
+            while (exp > 0) {
+                if (exp % 2 === 1) {
+                    result = (result * base) % mod;
+                }
+                base = (base * base) % mod;
+                exp = Math.floor(exp / 2);
+            }
+            return result;
+        }
+
+        let keys = generateKeys();
+
+        function encryptMessage() {
+            let message = document.getElementById("message").value;
+            let encryptedMessage = message.split('').map(char => modExp(char.charCodeAt(0), keys.publicKey.e, keys.publicKey.n)).join(' ');
+            document.getElementById("encryptedMessage").innerText = "Encrypted: " + encryptedMessage;
+        }
+
+        function decryptMessage() {
+            let encryptedMessage = document.getElementById("manualEncrypted").value.trim();
+            if (!encryptedMessage) {
+                encryptedMessage = document.getElementById("encryptedMessage").innerText.replace("Encrypted: ", "").trim();
+            }
+            let decryptedMessage = encryptedMessage.split(' ').map(num => String.fromCharCode(modExp(parseInt(num), keys.privateKey.d, keys.privateKey.n))).join('');
+            document.getElementById("decryptedMessage").innerText = "Decrypted: " + decryptedMessage;
+        }
+    </script>
+</body>
+</html>
